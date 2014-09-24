@@ -6,47 +6,47 @@ import time
 import json
 from os.path import isfile, exists, split
 from os import mkdir
-
+from scheduler import AlarmsScheduler
 from mopidy import core
+import gzip
 
 
 class AlarmsFrontend(pykka.ThreadingActor, core.CoreListener):
 
     scheduler = schedule
+
     def __init__(self, config, core):
         super(AlarmsFrontend, self).__init__()
         self.core = core
         self.config = config
-        
+
         # Start logger
         self.logger = logging.getLogger(__name__)
         self.logger.debug("Mopidy Alarms loaded")
+
         # Load alarms from disk
         self.scheduler.jobs = self.load_alarms(self.config['alarms']['jobsfile'])
         self.test_alarm()
         # Enter loop
-        self.run_pending()
 
+        self.background_scheduler = AlarmsScheduler(self.actor_ref)
 
-    def run_pending(self):
-        while True:
-            schedule.run_pending()
-            self.logger.debug("Run pending schedules:")
-            time.sleep(60)
+    def on_receive(self, message):
+        self.logger.info('Got a message from background scheduler: %s'% message)
+
 
     def load_alarms(self,jobs_file):
         if not isfile(jobs_file):
             self.logger.info(
             'No jobs file found, starting with no jobs!',jobs_file)
-        return {}
+            return {}
         try:
             with gzip.open(jobs_file, 'rb') as fp:
                 return json.load(fp)
         except (IOError, ValueError) as error:
-            logger.warning(
-            'Loading JSON jobs file failed: %s',
-            encoding.locale_decode(error))
-        return {}
+            self.logger.warning(
+            'Loading JSON jobs file failed: %s',error)
+            return {}
 
 
     def save_alarms(self,data):

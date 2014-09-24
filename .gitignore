@@ -1,3 +1,4 @@
+.gitignore
 *.egg-info
 *.pyc
 *.swp
@@ -6,3 +7,4 @@
 MANIFEST
 build/
 dist/
+.idea/
