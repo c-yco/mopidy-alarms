@@ -27,12 +27,15 @@ class AlarmsFrontend(pykka.ThreadingActor, core.CoreListener):
         # Load alarms from disk
         self.scheduler.jobs = self.load_alarms(self.config['alarms']['jobsfile'])
         self.test_alarm()
-        # Enter loop
 
-        self.background_scheduler = AlarmsScheduler(self.actor_ref)
+        # Enter loop
+        self.proxy_background_scheduler = AlarmsScheduler.start(self.actor_ref).proxy()
+
 
     def run_pending(self):
         self.logger.info('Got event from background scheduler:')
+        #put background sheduler in next wait cycle
+        self.proxy_background_scheduler.wait()
 
 
     def load_alarms(self,jobs_file):
