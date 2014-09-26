@@ -7,12 +7,12 @@ import time
 class AlarmsScheduler(pykka.ThreadingActor,):
 
 
-    def __init__(self, alarmsactor=pykka.ThreadingActor ):
+    def __init__(self, alarmsactor):
         super(AlarmsScheduler, self).__init__()
         self.logger = logging.getLogger(__name__)
         self.logger.info("Background scheduler started")
+        proxy= alarmsactor.proxy()
         while True:
-            self.logger.info("Run pending schedules:")
-            alarmsactor.tell({'msg':'run_pending'})
+            self.logger.debug("One Minute gone.. call run_pending in foreground:")
+            proxy.run_pending()
 
-            time.sleep(60)

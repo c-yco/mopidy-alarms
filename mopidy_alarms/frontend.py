@@ -31,8 +31,8 @@ class AlarmsFrontend(pykka.ThreadingActor, core.CoreListener):
 
         self.background_scheduler = AlarmsScheduler(self.actor_ref)
 
-    def on_receive(self, message):
-        self.logger.info('Got a message from background scheduler: %s'% message)
+    def run_pending(self):
+        self.logger.info('Got event from background scheduler:')
 
 
     def load_alarms(self,jobs_file):
